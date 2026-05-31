@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Mail Düzenle — SmartReach{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Geri butonu -->
+    <a href="{% url 'campaign_detail' email.campaign_id %}"
+       class="text-sm text-gray-500 hover:text-indigo-600 mb-6 inline-block">
+        ← Kampanyaya dön
+    </a>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <!-- Lead bilgisi -->
+        <div class="flex items-start gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+                <p class="font-medium text-gray-900">{{ email.lead.full_name }}</p>
+                <p class="text-sm text-gray-500">{{ email.lead.email }}</p>
+                {% if email.lead.company %}
+                <p class="text-xs text-gray-400">{{ email.lead.company }}{% if email.lead.position %} · {{ email.lead.position }}{% endif %}</p>
+                {% endif %}
+            </div>
+            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">
+                Düzenleniyor
+            </span>
+        </div>
+
+        <h1 class="text-xl font-bold text-gray-900 mb-6">Mail İçeriğini Düzenle</h1>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Konu -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Konu <span class="text-red-500">*</span>
+                </label>
+                {{ form.subject }}
+                {% if form.subject.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.subject.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Mail gövdesi -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Mail İçeriği <span class="text-red-500">*</span>
+                </label>
+                <p class="text-xs text-gray-400 mb-2">
+                    Düz metin olarak yazın. Tracking pixel ve abonelik linki otomatik eklenecek.
+                </p>
+                {{ form.body }}
+                {% if form.body.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.body.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Butonlar -->
+            <div class="flex gap-3 pt-4 border-t border-gray-100">
+                <button type="submit"
+                        class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700">
+                    Kaydet ve Onayla
+                </button>
+                <a href="{% url 'campaign_detail' email.campaign_id %}"
+                   class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg text-sm hover:bg-gray-50">
+                    İptal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

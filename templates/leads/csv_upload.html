@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}CSV Yükle — SmartReach{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <a href="{% url 'lead_list' %}" class="text-sm text-gray-500 hover:text-indigo-600 mb-6 inline-block">
+        ← Lead listesine dön
+    </a>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h1 class="text-xl font-bold text-gray-900 mb-2">CSV ile Toplu Lead Yükle</h1>
+        <p class="text-sm text-gray-500 mb-6">
+            Aynı e-posta adresi zaten kayıtlıysa o satır atlanır, hata vermez.
+        </p>
+
+        <!-- CSV format örneği -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
+            <p class="text-xs font-semibold text-gray-600 mb-2">CSV Dosyası Format Örneği:</p>
+            <code class="text-xs text-gray-700 block whitespace-pre">first_name,last_name,email,company,position,notes
+Ahmet,Yılmaz,ahmet@firma.com,Firma A,CEO,Geçen ay ürünümüzle ilgilendi
+Ayşe,Kaya,ayse@startup.io,Startup B,CTO,</code>
+            <a href="#" class="text-xs text-indigo-500 hover:underline mt-2 inline-block"
+               id="ornek-indir"
+               onclick="indir(); return false;">
+                Örnek dosyayı indir
+            </a>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if form.csv_file.errors %}
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {{ form.csv_file.errors.0 }}
+            </div>
+            {% endif %}
+
+            <!-- Dosya seçici -->
+            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-indigo-400 transition-colors">
+                <input type="file" name="csv_file" accept=".csv" id="csv-input"
+                       class="hidden" onchange="dosyaSecildi(this)">
+                <label for="csv-input" class="cursor-pointer">
+                    <div class="text-3xl mb-2">📂</div>
+                    <p class="text-sm font-medium text-gray-700" id="dosya-adi">
+                        CSV dosyası seçmek için tıkla
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">veya sürükle bırak · Maks. 5MB</p>
+                </label>
+            </div>
+
+            <button type="submit"
+                    class="mt-6 w-full bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700">
+                Yükle ve İşle
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function dosyaSecildi(input) {
+    // Seçilen dosya adını göster
+    const etiket = document.getElementById('dosya-adi');
+    etiket.textContent = input.files[0] ? input.files[0].name : 'CSV dosyası seçmek için tıkla';
+}
+
+function indir() {
+    // Tarayıcıda örnek CSV oluştur ve indir
+    const icerik = "first_name,last_name,email,company,position,notes\nAhmet,Yılmaz,ahmet@firma.com,Firma A,CEO,\nAyşe,Kaya,ayse@startup.io,Startup B,CTO,";
+    const blob = new Blob([icerik], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'lead_sablonu.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

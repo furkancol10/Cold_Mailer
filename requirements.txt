@@ -1,0 +1,32 @@
+# ── Temel Django ──────────────────────────────────────────────
+Django==5.2.1
+djangorestframework==3.16.0
+
+# ── Veritabanı ────────────────────────────────────────────────
+psycopg[binary]==3.2.13         # PostgreSQL sürücüsü (psycopg3)
+
+# ── Kimlik Doğrulama ──────────────────────────────────────────
+django-allauth==65.4.1          # Google OAuth2 ile giriş
+PyJWT==2.10.1                   # allauth Google sağlayıcısı için gerekli
+
+# ── AI ────────────────────────────────────────────────────────
+google-generativeai==0.8.3      # Gemini API
+
+# ── Google API (Gmail) ────────────────────────────────────────
+google-api-python-client==2.169.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.1
+
+# ── Görev Kuyruğu ─────────────────────────────────────────────
+celery==5.5.2
+redis==5.2.1
+django-celery-beat==2.8.0       # Zamanlanmış görevler için
+
+# ── Ortam Değişkenleri ────────────────────────────────────────
+python-dotenv==1.1.0
+django-environ==0.12.0
+
+# ── Yardımcılar ───────────────────────────────────────────────
+# Pillow kaldırıldı — tracking pixel için sabit byte dizisi kullanılıyor
+django-crispy-forms==2.4        # Form güzelleştirme
+crispy-tailwind==1.0.3          # Tailwind uyumu

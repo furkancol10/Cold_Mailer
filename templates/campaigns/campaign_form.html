@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — SmartReach{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Geri butonu -->
+    <a href="{% url 'campaign_list' %}" class="text-sm text-gray-500 hover:text-indigo-600 mb-6 inline-block">
+        ← Kampanya listesine dön
+    </a>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="space-y-6">
+
+            <!-- TEMEL BİLGİLER -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-5">Temel Bilgiler</h2>
+
+                {% if form.non_field_errors %}
+                <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <!-- Kampanya Adı -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Kampanya Adı <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Açıklama -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+                    {{ form.description }}
+                </div>
+
+                <!-- Hizmet Açıklaması -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Hizmet Açıklaması <span class="text-red-500">*</span>
+                    </label>
+                    <p class="text-xs text-gray-400 mb-2">AI bu bilgiyi kullanarak maili kişiselleştirecek.</p>
+                    {{ form.service_description }}
+                    {% if form.service_description.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.service_description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- AI PROMPT ŞABLONU -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">AI Prompt Şablonu</h2>
+                <p class="text-xs text-gray-400 mb-4">
+                    Kullanabileceğiniz değişkenler:
+                    <code class="bg-gray-100 px-1 rounded">{lead.first_name}</code>
+                    <code class="bg-gray-100 px-1 rounded">{lead.company}</code>
+                    <code class="bg-gray-100 px-1 rounded">{lead.position}</code>
+                    <code class="bg-gray-100 px-1 rounded">{lead.notes}</code>
+                    <code class="bg-gray-100 px-1 rounded">{service_description}</code>
+                </p>
+                {{ form.prompt_template }}
+            </div>
+
+            <!-- GÖNDERIM AYARLARI -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-5">Gönderim Ayarları</h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Günlük Gönderim Limiti
+                        </label>
+                        <p class="text-xs text-gray-400 mb-2">Spam'e düşmemek için günde max kaç mail gönderilsin?</p>
+                        {{ form.daily_limit }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Zamanlanmış Gönderim
+                        </label>
+                        <p class="text-xs text-gray-400 mb-2">Boş bırakırsanız kampanyayı el ile başlatırsınız.</p>
+                        {{ form.scheduled_at }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEAD SEÇİMİ -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Lead Seçimi</h2>
+                        <p class="text-xs text-gray-400 mt-1">
+                            Toplam {{ available_leads.count }} lead — kampanyaya dahil edilecekleri seçin.
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="hepsiniSec()"
+                                class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                            Tümünü Seç
+                        </button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" onclick="hepsiniKaldir()"
+                                class="text-xs text-gray-500 hover:text-gray-700 font-medium">
+                            Temizle
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lead arama filtresi -->
+                <input type="text" id="leadArama"
+                       placeholder="Lead ara (isim, e-posta, şirket)..."
+                       oninput="leadFiltrele(this.value)"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                {% if available_leads %}
+                <div class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg" id="leadListesi">
+                    {% for lead in available_leads %}
+                    <label class="lead-satir flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0"
+                           data-arama="{{ lead.first_name|lower }} {{ lead.last_name|lower }} {{ lead.email|lower }} {{ lead.company|lower }}">
+                        <input type="checkbox" name="leads" value="{{ lead.pk }}"
+                               class="rounded border-gray-300 text-indigo-600"
+                               {% if lead.pk in selected_lead_ids %}checked{% endif %}>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900">{{ lead.full_name }}</p>
+                            <p class="text-xs text-gray-400 truncate">{{ lead.email }}{% if lead.company %} · {{ lead.company }}{% endif %}</p>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                <p class="text-xs text-gray-400 mt-2" id="seciliSayi">
+                    <span id="seciliSayiDeger">{{ selected_lead_ids|length }}</span> lead seçili
+                </p>
+                {% else %}
+                <div class="text-center py-8 text-gray-400">
+                    <p class="text-sm">Henüz lead yok.</p>
+                    <a href="{% url 'csv_upload' %}" class="text-indigo-500 hover:underline text-sm mt-1 inline-block">
+                        CSV ile lead yükle →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- BUTONLAR -->
+            <div class="flex gap-3">
+                <button type="submit"
+                        class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700">
+                    {% if campaign %}Güncelle{% else %}Kampanya Oluştur{% endif %}
+                </button>
+                <a href="{% url 'campaign_list' %}"
+                   class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg text-sm hover:bg-gray-50">
+                    İptal
+                </a>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function hepsiniSec() {
+    document.querySelectorAll('#leadListesi input[type="checkbox"]').forEach(cb => cb.checked = true);
+    seciliSayiGuncelle();
+}
+
+function hepsiniKaldir() {
+    document.querySelectorAll('#leadListesi input[type="checkbox"]').forEach(cb => cb.checked = false);
+    seciliSayiGuncelle();
+}
+
+function leadFiltrele(deger) {
+    const aramaMetni = deger.toLowerCase().trim();
+    document.querySelectorAll('.lead-satir').forEach(satir => {
+        const veri = satir.dataset.arama || '';
+        satir.style.display = veri.includes(aramaMetni) ? '' : 'none';
+    });
+}
+
+function seciliSayiGuncelle() {
+    const sayi = document.querySelectorAll('#leadListesi input[type="checkbox"]:checked').length;
+    document.getElementById('seciliSayiDeger').textContent = sayi;
+}
+
+// Checkbox değiştiğinde sayacı güncelle
+document.addEventListener('change', function(e) {
+    if (e.target.type === 'checkbox' && e.target.name === 'leads') {
+        seciliSayiGuncelle();
+    }
+});
+</script>
+{% endblock %}

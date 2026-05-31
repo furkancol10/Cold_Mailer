@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}{{ campaign.name }} — SmartReach{% endblock %}
+
+{% block content %}
+<!-- Başlık -->
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
+    <div>
+        <a href="{% url 'campaign_list' %}" class="text-sm text-gray-400 hover:text-indigo-600">
+            ← Kampanyalara dön
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ campaign.name }}</h1>
+        {% if campaign.description %}
+        <p class="text-gray-500 text-sm mt-1">{{ campaign.description }}</p>
+        {% endif %}
+        <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium
+            {% if campaign.status == 'active' %}bg-green-100 text-green-700
+            {% elif campaign.status == 'paused' %}bg-yellow-100 text-yellow-700
+            {% elif campaign.status == 'completed' %}bg-gray-100 text-gray-600
+            {% else %}bg-blue-100 text-blue-700{% endif %}">
+            {{ campaign.get_status_display }}
+        </span>
+    </div>
+
+    <!-- Aksiyon butonları -->
+    <div class="flex flex-wrap gap-2">
+        <!-- AI ile Mail Üret -->
+        {% if campaign.status == 'draft' or campaign.status == 'paused' %}
+        <form method="post" action="{% url 'campaign_generate' campaign.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 flex items-center gap-2"
+                    onclick="return confirm('{{ stats.toplam_lead }} lead için AI mail üretimi başlatılacak. Devam?')">
+                🤖 Mailler Üret
+            </button>
+        </form>
+        {% endif %}
+
+        <!-- Toplu Onayla -->
+        {% if stats.bekleyen > 0 %}
+        <form method="post" action="{% url 'email_approve_all' campaign.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+                ✓ Tümünü Onayla ({{ stats.bekleyen }})
+            </button>
+        </form>
+        {% endif %}
+
+        <!-- Kampanyayı Başlat -->
+        {% if campaign.status == 'draft' and stats.onaylanan > 0 %}
+        <form method="post" action="{% url 'campaign_launch' campaign.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700"
+                    onclick="return confirm('{{ stats.onaylanan }} mail gönderilecek. Günlük limit: {{ campaign.daily_limit }}. Başlatılsın mı?')">
+                🚀 Kampanyayı Başlat
+            </button>
+        </form>
+        {% endif %}
+
+        <!-- Duraklat / Devam Et -->
+        {% if campaign.status == 'active' or campaign.status == 'paused' %}
+        <form method="post" action="{% url 'campaign_pause' campaign.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-600">
+                {% if campaign.status == 'active' %}⏸ Duraklat{% else %}▶ Devam Et{% endif %}
+            </button>
+        </form>
+        {% endif %}
+
+        <!-- Düzenle -->
+        <a href="{% url 'campaign_edit' campaign.pk %}"
+           class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50">
+            Düzenle
+        </a>
+    </div>
+</div>
+
+<!-- İstatistik kartları -->
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 col-span-1">
+        <p class="text-xs text-gray-400">Lead</p>
+        <p class="text-2xl font-bold text-gray-800 mt-1">{{ stats.toplam_lead }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 col-span-1">
+        <p class="text-xs text-gray-400">Üretilen</p>
+        <p class="text-2xl font-bold text-purple-600 mt-1">{{ stats.uretilen }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 col-span-1">
+        <p class="text-xs text-gray-400">Bekleyen</p>
+        <p class="text-2xl font-bold text-yellow-500 mt-1">{{ stats.bekleyen }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 col-span-1">
+        <p class="text-xs text-gray-400">Onaylanan</p>
+        <p class="text-2xl font-bold text-blue-600 mt-1">{{ stats.onaylanan }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 col-span-1">
+        <p class="text-xs text-gray-400">Gönderilen</p>
+        <p class="text-2xl font-bold text-green-600 mt-1">{{ stats.gonderilen }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 col-span-1">
+        <p class="text-xs text-gray-400">Açılan</p>
+        <p class="text-2xl font-bold text-indigo-600 mt-1">{{ stats.acilan }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 col-span-1">
+        <p class="text-xs text-gray-400">Cevaplanan</p>
+        <p class="text-2xl font-bold text-pink-600 mt-1">{{ stats.cevaplanan }}</p>
+    </div>
+</div>
+
+<!-- Açılma/cevap oranları (gönderilen varsa) -->
+{% if stats.gonderilen > 0 %}
+<div class="grid grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <p class="text-sm text-gray-500 mb-2">Açılma Oranı</p>
+        <div class="flex items-end gap-2">
+            <p class="text-3xl font-bold text-indigo-600">{{ stats.acilma_orani }}%</p>
+            <p class="text-sm text-gray-400 pb-1">{{ stats.acilan }} / {{ stats.gonderilen }}</p>
+        </div>
+        <div class="mt-3 bg-gray-100 rounded-full h-2">
+            <div class="bg-indigo-500 h-2 rounded-full" style="width: {{ stats.acilma_orani }}%"></div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <p class="text-sm text-gray-500 mb-2">Cevap Oranı</p>
+        <div class="flex items-end gap-2">
+            <p class="text-3xl font-bold text-pink-600">{{ stats.cevap_orani }}%</p>
+            <p class="text-sm text-gray-400 pb-1">{{ stats.cevaplanan }} / {{ stats.gonderilen }}</p>
+        </div>
+        <div class="mt-3 bg-gray-100 rounded-full h-2">
+            <div class="bg-pink-500 h-2 rounded-full" style="width: {{ stats.cevap_orani }}%"></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Mail tablosu -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="font-semibold text-gray-900">Üretilen Mailler</h2>
+        {% if stats.uretilen == 0 %}
+        <span class="text-xs text-gray-400">Henüz mail üretilmedi</span>
+        {% endif %}
+    </div>
+
+    {% if emails %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100 text-left text-gray-400 text-xs uppercase tracking-wide">
+                    <th class="px-6 py-3">Lead</th>
+                    <th class="px-6 py-3 hidden md:table-cell">Konu</th>
+                    <th class="px-6 py-3 hidden lg:table-cell">Önizleme</th>
+                    <th class="px-6 py-3">Durum</th>
+                    <th class="px-6 py-3">İşlem</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for email in emails %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <!-- Lead bilgisi -->
+                    <td class="px-6 py-4">
+                        <p class="font-medium text-gray-900">{{ email.lead.full_name }}</p>
+                        <p class="text-xs text-gray-400">{{ email.lead.email }}</p>
+                        {% if email.lead.company %}
+                        <p class="text-xs text-gray-300">{{ email.lead.company }}</p>
+                        {% endif %}
+                    </td>
+                    <!-- Konu -->
+                    <td class="px-6 py-4 text-gray-700 hidden md:table-cell max-w-xs">
+                        <p class="truncate">{{ email.subject }}</p>
+                    </td>
+                    <!-- Gövde önizleme -->
+                    <td class="px-6 py-4 text-gray-400 text-xs hidden lg:table-cell max-w-xs">
+                        <p class="truncate">{{ email.body|truncatechars:80 }}</p>
+                    </td>
+                    <!-- Durum badge -->
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap
+                            {% if email.status == 'pending' %}bg-yellow-100 text-yellow-700
+                            {% elif email.status == 'approved' %}bg-blue-100 text-blue-700
+                            {% elif email.status == 'sent' %}bg-green-100 text-green-700
+                            {% elif email.status == 'opened' %}bg-indigo-100 text-indigo-700
+                            {% elif email.status == 'replied' %}bg-pink-100 text-pink-700
+                            {% elif email.status == 'failed' %}bg-red-100 text-red-700
+                            {% elif email.status == 'skipped' %}bg-gray-100 text-gray-500
+                            {% endif %}">
+                            {{ email.get_status_display }}
+                        </span>
+                    </td>
+                    <!-- İşlem butonları -->
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2 flex-wrap">
+                            {% if email.status == 'pending' %}
+                            <!-- Onayla -->
+                            <form method="post" action="{% url 'email_approve' email.pk %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="text-xs bg-green-50 text-green-700 hover:bg-green-100 px-2 py-1 rounded font-medium">
+                                    Onayla
+                                </button>
+                            </form>
+                            <!-- Atla -->
+                            <form method="post" action="{% url 'email_skip' email.pk %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="text-xs bg-gray-50 text-gray-500 hover:bg-gray-100 px-2 py-1 rounded font-medium">
+                                    Atla
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {% if email.status == 'pending' or email.status == 'approved' %}
+                            <!-- Düzenle -->
+                            <a href="{% url 'email_edit' email.pk %}"
+                               class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2 py-1 rounded font-medium">
+                                Düzenle
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="py-16 text-center text-gray-400">
+        {% if stats.toplam_lead == 0 %}
+        <p class="text-lg">Bu kampanyada lead yok.</p>
+        <a href="{% url 'campaign_edit' campaign.pk %}"
+           class="text-indigo-500 hover:underline mt-2 inline-block text-sm">
+            Lead eklemek için düzenle →
+        </a>
+        {% else %}
+        <p class="text-lg">Henüz mail üretilmedi.</p>
+        <p class="text-sm mt-1 mb-6">{{ stats.toplam_lead }} lead hazır. "Mailler Üret" butonuna tıkla.</p>
+        <form method="post" action="{% url 'campaign_generate' campaign.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="bg-purple-600 text-white px-6 py-2.5 rounded-lg text-sm hover:bg-purple-700">
+                🤖 AI ile Mailler Üret
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}SmartReach — AI Destekli Soğuk E-Mail Aracı{% endblock %}
+
+{% block content %}
+<!-- Hero Bölümü -->
+<div class="text-center py-20">
+    <h1 class="text-5xl font-extrabold text-gray-900 mb-6">
+        Soğuk E-Mail'i<br>
+        <span class="text-indigo-600">AI ile Kişiselleştir</span>
+    </h1>
+    <p class="text-xl text-gray-500 max-w-2xl mx-auto mb-10">
+        Lead listenizi yükleyin, AI her biri için özgün mail yazsın,
+        Gmail üzerinden otomatik gönderin ve sonuçları takip edin.
+    </p>
+    <a href="{% url 'account_login' %}"
+       class="bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition">
+        Google ile Ücretsiz Başla
+    </a>
+</div>
+
+<!-- Özellikler -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="text-3xl mb-3">📋</div>
+        <h3 class="font-bold text-lg mb-2">CSV Yükle</h3>
+        <p class="text-gray-500 text-sm">Müşteri adaylarını CSV olarak yükleyin, sistem otomatik işlesin.</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="text-3xl mb-3">🤖</div>
+        <h3 class="font-bold text-lg mb-2">AI ile Kişiselleştir</h3>
+        <p class="text-gray-500 text-sm">Claude AI her lead için özel, samimi bir mail yazar.</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="text-3xl mb-3">📊</div>
+        <h3 class="font-bold text-lg mb-2">Sonuçları Takip Et</h3>
+        <p class="text-gray-500 text-sm">Açılma ve cevap oranlarını gerçek zamanlı görün.</p>
+    </div>
+</div>
+{% endblock %}
