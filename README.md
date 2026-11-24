@@ -43,8 +43,8 @@ Potansiyel müşteri listesini yükle, Google Gemini AI her kişi için kişisel
 ### 2. Projeyi klonla
 
 ```bash
-git clone https://github.com/kullanici-adi/smartreach.git
-cd smartreach
+git clone https://github.com/furkancol10/Cold_Mailer.git
+cd Cold_Mailer
 ```
 
 ### 3. Sanal ortam oluştur ve paketleri yükle
