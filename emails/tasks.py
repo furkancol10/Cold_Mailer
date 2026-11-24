@@ -33,7 +33,7 @@ def generate_emails_for_campaign(self, campaign_id):
     import google.generativeai as genai
     genai.configure(api_key=settings.GEMINI_API_KEY)
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
+        model_name="gemini-3.8-flash",
         system_instruction=(
             "Sen profesyonel bir B2B satış yazarısın. "
             "Verilen bilgilere göre kişiselleştirilmiş, doğal ve samimi bir soğuk e-mail yaz. "

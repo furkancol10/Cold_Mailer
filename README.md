@@ -11,7 +11,7 @@ Potansiyel müşteri listesini yükle, Google Gemini AI her kişi için kişisel
 - **Google ile giriş** — django-allauth ile OAuth2
 - **Lead yönetimi** — CSV yükleme, tek tek ekleme/düzenleme/silme, arama
 - **Kampanya yönetimi** — Lead seçimi, AI prompt şablonu, günlük gönderim limiti
-- **AI mail üretimi** — Google Gemini 1.5 Flash her lead için kişiselleştirilmiş mail yazar
+- **AI mail üretimi** — Google Gemini 3.8 Flash her lead için kişiselleştirilmiş mail yazar
 - **Mail onaylama** — Kullanıcı gönderilmeden önce mailleri tek tek veya toplu onaylar, düzenler
 - **Zamanlanmış gönderim** — Celery + Redis ile arka planda, spam koruması için 30–90 sn bekleme
 - **Açılma takibi** — Gizli 1×1 tracking pixel ile açılma olayları kaydedilir
@@ -24,7 +24,7 @@ Potansiyel müşteri listesini yükle, Google Gemini AI her kişi için kişisel
 |---|---|
 | Backend | Django 5.2 LTS + Django REST Framework |
 | Veritabanı | PostgreSQL + psycopg3 |
-| AI | Google Gemini 1.5 Flash |
+| AI | Google Gemini 3.8 Flash |
 | E-Mail | Gmail API (OAuth2) |
 | Zamanlama | Celery + Redis |
 | Frontend | Django Templates + HTMX + Tailwind CSS (CDN) |
@@ -124,7 +124,7 @@ Tarayıcıda aç: [http://localhost:8000](http://localhost:8000)
 
 | Servis | URL | Notlar |
 |---|---|---|
-| **Gemini API** | [aistudio.google.com](https://aistudio.google.com) | Ücretsiz, günde 1500 istek |
+| **Gemini API** | [aistudio.google.com](https://aistudio.google.com) | Ücretsiz katman var (güncel limitler AI Studio'da) |
 | **Google OAuth2** | [console.cloud.google.com](https://console.cloud.google.com) | Gmail API'yi de aktif et |
 
 ### Google Cloud Console adımları:
